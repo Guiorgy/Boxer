@@ -1,4 +1,4 @@
-﻿#include <boxer/boxer.h>
+﻿#include <boxer.h>
 
 int main(int argc, char* argv[])
 {
