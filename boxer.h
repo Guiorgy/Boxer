@@ -20,15 +20,15 @@
    #error "You may not have both __linux__ and [WIN32|_WIN32|__WIN32|__CYGWIN__] defined"
 #endif
 
+#include <map>
+#include <string>
+
 #if defined(__linux__)
 #include <gtk/gtk.h>
 #elif defined(WINDOWS)
-#include <string>
-
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif // WIN32_LEAN_AND_MEAN
-
 #include <Windows.h>
 #endif // defined(__linux__)
 
@@ -299,6 +299,46 @@ inline Selection show(const char* message, const char* title)
 }
 
 } // namespace boxer
+
+namespace std {
+    namespace boxer_detail {
+        const map<boxer::Style, const string> styleToString = {
+            { boxer::Style::Info, "Info" },
+            { boxer::Style::Warning, "Warning" },
+            { boxer::Style::Error, "Error" },
+            { boxer::Style::Question, "Question" }
+        };
+
+        const map<boxer::Buttons, const string> buttonsToString = {
+            { boxer::Buttons::OK, "OK" },
+            { boxer::Buttons::OKCancel, "OKCancel" },
+            { boxer::Buttons::YesNo, "YesNo" },
+            { boxer::Buttons::Quit, "Quit" }
+        };
+
+        const map<boxer::Selection, const string> selectionToString = {
+            { boxer::Selection::OK, "OK" },
+            { boxer::Selection::Cancel, "Cancel" },
+            { boxer::Selection::Yes, "Yes" },
+            { boxer::Selection::No, "No" },
+            { boxer::Selection::Quit, "Quit" },
+            { boxer::Selection::None, "None" },
+            { boxer::Selection::Error, "Error" }
+        };
+    } // namespace
+
+    const string& to_string(const boxer::Style style) {
+        return boxer_detail::styleToString.at(style);
+    }
+
+    const string& to_string(const boxer::Buttons buttons) {
+        return boxer_detail::buttonsToString.at(buttons);
+    }
+
+    const string& to_string(const boxer::Selection selection) {
+        return boxer_detail::selectionToString.at(selection);
+    }
+} // namespace std
 
 #ifdef UNDEF_WINDOWS
 #undef UNDEF_WINDOWS
