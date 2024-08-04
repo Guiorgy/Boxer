@@ -1,5 +1,4 @@
-#ifndef BOXER_H
-#define BOXER_H
+#pragma once
 
 #if defined(BOXER_DLL) && defined(BOXER_BUILD_DLL)
    /*!
@@ -343,6 +342,4 @@ namespace std {
 #ifdef UNDEF_WINDOWS
 #undef UNDEF_WINDOWS
 #undef WINDOWS
-#endif
-
 #endif
