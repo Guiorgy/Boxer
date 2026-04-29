@@ -280,7 +280,7 @@ BOXERAPI Selection show(const char* message, const char* title, Style style, But
 /*!
  * Convenience function to call show() with the default buttons
  */
-inline Selection show(const char* message, const char* title, Style style)
+BOXERAPI inline Selection show(const char* message, const char* title, Style style)
 {
    return show(message, title, style, kDefaultButtons);
 }
@@ -288,7 +288,7 @@ inline Selection show(const char* message, const char* title, Style style)
 /*!
  * Convenience function to call show() with the default style
  */
-inline Selection show(const char* message, const char* title, Buttons buttons)
+BOXERAPI inline Selection show(const char* message, const char* title, Buttons buttons)
 {
    return show(message, title, kDefaultStyle, buttons);
 }
@@ -296,7 +296,7 @@ inline Selection show(const char* message, const char* title, Buttons buttons)
 /*!
  * Convenience function to call show() with the default style and buttons
  */
-inline Selection show(const char* message, const char* title)
+BOXERAPI inline Selection show(const char* message, const char* title)
 {
    return show(message, title, kDefaultStyle, kDefaultButtons);
 }
@@ -330,15 +330,15 @@ namespace std {
       };
    } // namespace
 
-   const string& to_string(const boxer::Style style) {
+   BOXERAPI const string& to_string(const boxer::Style style) {
       return boxer_detail::styleToString.at(style);
    }
 
-   const string& to_string(const boxer::Buttons buttons) {
+   BOXERAPI const string& to_string(const boxer::Buttons buttons) {
       return boxer_detail::buttonsToString.at(buttons);
    }
 
-   const string& to_string(const boxer::Selection selection) {
+   BOXERAPI const string& to_string(const boxer::Selection selection) {
       return boxer_detail::selectionToString.at(selection);
    }
 } // namespace std
