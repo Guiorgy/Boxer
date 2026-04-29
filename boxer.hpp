@@ -23,10 +23,13 @@
 #if defined(__linux__)
    #include <gtk/gtk.h>
 #elif defined(WINDOWS)
-   #ifndef WIN32_LEAN_AND_MEAN
+   #if defined(WIN32_LEAN_AND_MEAN)
+      #include <Windows.h>
+   #else
       #define WIN32_LEAN_AND_MEAN
-   #endif // WIN32_LEAN_AND_MEAN
-   #include <Windows.h>
+      #include <Windows.h>
+      #undef WIN32_LEAN_AND_MEAN
+   #endif // defined(WIN32_LEAN_AND_MEAN)
 #endif // defined(__linux__)
 
 /*!
