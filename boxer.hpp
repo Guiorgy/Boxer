@@ -250,7 +250,7 @@ BOXERAPI Selection show(const char* message, const char* title, Style style, But
 
    gtk_widget_destroy(GTK_WIDGET(dialog));
    gtk_widget_destroy(GTK_WIDGET(parent));
-   while (g_main_context_iteration(nullptr, false));
+   while (gtk_events_pending()) gtk_main_iteration();
 
    return selection;
 #elif defined(WINDOWS)
