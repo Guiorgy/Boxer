@@ -224,6 +224,62 @@ constexpr Buttons kDefaultButtons = Buttons::OK;
 BOXERAPI Selection show(const char* message, const char* title, Style style, Buttons buttons)
 {
 #if defined(__linux__)
+ #if defined(GTK4)
+   class DialogSyncRunner {
+      GtkWidget* parent;
+      GtkWidget* dialog;
+      GMainLoop* loop;
+      int response;
+
+   public:
+      explicit DialogSyncRunner(GtkWidget* parent, GtkWidget* dialog) noexcept : parent(parent), dialog(dialog), loop(g_main_loop_new(nullptr, FALSE)), response(GTK_RESPONSE_NONE) {
+         g_signal_connect(dialog, "response", G_CALLBACK(+[](GtkDialog* d, int response, gpointer data) {
+            auto* state = static_cast<DialogSyncRunner*>(data);
+            state->response = response;
+            g_main_loop_quit(state->loop);
+         }), this);
+      }
+      ~DialogSyncRunner() noexcept {
+         if (dialog) gtk_window_destroy(GTK_WINDOW(dialog));
+         if (parent) gtk_window_destroy(GTK_WINDOW(parent));
+         if (loop) {
+            g_main_loop_quit(loop);
+            g_main_loop_unref(loop);
+         }
+      }
+
+      int present() noexcept {
+         if (dialog && loop) {
+            gtk_window_present(GTK_WINDOW(dialog));
+            g_main_loop_run(loop); // blocking
+         }
+         return response;
+      }
+
+      DialogSyncRunner(const DialogSyncRunner&) = delete;
+      DialogSyncRunner& operator=(const DialogSyncRunner&) = delete;
+   };
+
+   if (!gtk_init_check()) {
+      return Selection::Error;
+   }
+   
+   // Create a parent window to stop gtk_dialog_run from complaining
+   GtkWidget* parent = gtk_window_new();
+
+   GtkWidget* dialog = gtk_message_dialog_new(GTK_WINDOW(parent),
+                                              GTK_DIALOG_MODAL,
+                                              getMessageType(style),
+                                              getButtonsType(buttons),
+                                              "%s",
+                                              message);
+   gtk_window_set_title(GTK_WINDOW(dialog), title);
+
+   DialogSyncRunner syncRunner(parent, dialog);
+   Selection selection = getSelection(syncRunner.present());
+
+   return selection;
+ #else
    if (!gtk_init_check(0, nullptr))
    {
       return Selection::Error;
@@ -253,6 +309,7 @@ BOXERAPI Selection show(const char* message, const char* title, Style style, But
    while (gtk_events_pending()) gtk_main_iteration();
 
    return selection;
+ #endif // defined(GTK4)
 #elif defined(WINDOWS)
    UINT flags = MB_TASKMODAL;
 
