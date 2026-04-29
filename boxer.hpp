@@ -280,8 +280,27 @@ BOXERAPI Selection show(const char* message, const char* title, Style style, But
 
    return selection;
  #else
-   if (!gtk_init_check(0, nullptr))
-   {
+   class DialogRunner {
+      GtkWidget* parent;
+      GtkWidget* dialog;
+
+   public:
+      explicit DialogRunner(GtkWidget* parent, GtkWidget* dialog) noexcept : parent(parent), dialog(dialog) {}
+      ~DialogRunner() noexcept {
+         if (dialog) gtk_widget_destroy(GTK_WIDGET(dialog));
+         if (parent) gtk_widget_destroy(GTK_WIDGET(parent));
+         while (gtk_events_pending()) gtk_main_iteration();
+      }
+
+      int run() noexcept {
+         return gtk_dialog_run(GTK_DIALOG(dialog));
+      }
+
+      DialogRunner(const DialogRunner&) = delete;
+      DialogRunner& operator=(const DialogRunner&) = delete;
+   };
+
+   if (!gtk_init_check(0, nullptr)) {
       return Selection::Error;
    }
 
@@ -302,11 +321,8 @@ BOXERAPI Selection show(const char* message, const char* title, Style style, But
    gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
    gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
 
-   Selection selection = getSelection(gtk_dialog_run(GTK_DIALOG(dialog)));
-
-   gtk_widget_destroy(GTK_WIDGET(dialog));
-   gtk_widget_destroy(GTK_WIDGET(parent));
-   while (gtk_events_pending()) gtk_main_iteration();
+   DialogRunner runner(parent, dialog);
+   Selection selection = getSelection(runner.run());
 
    return selection;
  #endif // defined(GTK4)
