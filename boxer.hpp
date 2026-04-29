@@ -244,6 +244,7 @@ BOXERAPI Selection show(const char* message, const char* title, Style style, But
    gtk_window_set_gravity(GTK_WINDOW(dialog), GDK_GRAVITY_CENTER);
    gtk_window_set_position(GTK_WINDOW(parent), GTK_WIN_POS_CENTER);
    gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
+   gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
 
    Selection selection = getSelection(gtk_dialog_run(GTK_DIALOG(dialog)));
 
