@@ -9,10 +9,8 @@
 #endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#ifndef WINDOWS
+#pragma push_macro("WINDOWS")
 #define WINDOWS
-#define UNDEF_WINDOWS
-#endif // WINDOWS
 #endif // defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
 #if defined(__linux__) && defined(WINDOWS)
@@ -345,7 +343,4 @@ namespace std {
     }
 } // namespace std
 
-#ifdef UNDEF_WINDOWS
-#undef UNDEF_WINDOWS
-#undef WINDOWS
-#endif
+#pragma pop_macro("WINDOWS")
