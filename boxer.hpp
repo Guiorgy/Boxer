@@ -9,8 +9,8 @@
 #endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#pragma push_macro("WINDOWS")
-#define WINDOWS
+   #pragma push_macro("WINDOWS")
+   #define WINDOWS
 #endif // defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
 #if defined(__linux__) && defined(WINDOWS)
@@ -21,12 +21,12 @@
 #include <string>
 
 #if defined(__linux__)
-#include <gtk/gtk.h>
+   #include <gtk/gtk.h>
 #elif defined(WINDOWS)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif // WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+   #ifndef WIN32_LEAN_AND_MEAN
+      #define WIN32_LEAN_AND_MEAN
+   #endif // WIN32_LEAN_AND_MEAN
+   #include <Windows.h>
 #endif // defined(__linux__)
 
 /*!
