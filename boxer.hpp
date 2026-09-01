@@ -109,6 +109,70 @@ namespace
       }
    }
 
+ #if defined(GTK4)
+   void setButtons(GtkAlertDialog* dialog, Buttons buttons)
+   {
+      switch (buttons)
+      {
+      case Buttons::OK:
+         {
+            static const char* buttons[] = {
+               "OK",
+               nullptr
+            };
+            gtk_alert_dialog_set_buttons(dialog, buttons);
+            gtk_alert_dialog_set_cancel_button(dialog, 0);
+            gtk_alert_dialog_set_default_button(dialog, 0);
+         }
+         break;
+      case Buttons::OKCancel:
+         {
+            static const char* buttons[] = {
+               "Cancel",
+               "OK",
+               nullptr
+            };
+            gtk_alert_dialog_set_buttons(dialog, buttons);
+            gtk_alert_dialog_set_cancel_button(dialog, 0);
+            gtk_alert_dialog_set_default_button(dialog, 1);
+         }
+         break;
+      case Buttons::YesNo:
+         {
+            static const char* buttons[] = {
+               "No",
+               "Yes",
+               nullptr
+            };
+            gtk_alert_dialog_set_buttons(dialog, buttons);
+            gtk_alert_dialog_set_cancel_button(dialog, 0);
+            gtk_alert_dialog_set_default_button(dialog, 1);
+         }
+         break;
+      case Buttons::Quit:
+         {
+            static const char* buttons[] = {
+               "Close",
+               nullptr
+            };
+            gtk_alert_dialog_set_buttons(dialog, buttons);
+            gtk_alert_dialog_set_cancel_button(dialog, 0);
+            gtk_alert_dialog_set_default_button(dialog, 0);
+         }
+         break;
+      default:
+         {
+            static const char* buttons[] = {
+               "OK",
+               nullptr
+            };
+            gtk_alert_dialog_set_buttons(dialog, buttons);
+            gtk_alert_dialog_set_cancel_button(dialog, 0);
+            gtk_alert_dialog_set_default_button(dialog, 0);
+         }
+      }
+   }
+ #else // GTK4_DEPRECATED or GTK3
    GtkButtonsType getButtonsType(Buttons buttons)
    {
       switch (buttons)
@@ -119,13 +183,32 @@ namespace
          return GTK_BUTTONS_OK_CANCEL;
       case Buttons::YesNo:
          return GTK_BUTTONS_YES_NO;
-     case Buttons::Quit:
+      case Buttons::Quit:
          return GTK_BUTTONS_CLOSE;
       default:
          return GTK_BUTTONS_OK;
       }
    }
+ #endif // defined(GTK4)
 
+ #if defined(GTK4)
+   Selection getSelection(int response, Buttons buttons)
+   {
+      switch (buttons)
+      {
+      case Buttons::OK:
+         return response == 0 ? Selection::OK : Selection::None;
+      case Buttons::OKCancel:
+         return response == 0 ? Selection::Cancel : (response == 1 ? Selection::OK : Selection::None);
+      case Buttons::YesNo:
+         return response == 0 ? Selection::No : (response == 1 ? Selection::Yes : Selection::None);
+      case Buttons::Quit:
+         return response == 0 ? Selection::Quit : Selection::None;
+      default:
+         return response == 0 ? Selection::OK : Selection::None;
+      }
+   }
+ #else // GTK4_DEPRECATED or GTK3
    Selection getSelection(gint response)
    {
       switch (response)
@@ -144,6 +227,7 @@ namespace
          return Selection::None;
       }
    }
+ #endif // defined(GTK4)
 #elif defined(WINDOWS)
  #if defined(UNICODE)
    bool utf8ToUtf16(const char* utf8String, std::wstring& utf16String)
@@ -229,6 +313,68 @@ BOXERAPI Selection show(const char* message, const char* title, Style style, But
 #if defined(__linux__)
  #if defined(GTK4)
    class DialogSyncRunner {
+      GtkWindow* parent;
+      GtkAlertDialog* dialog;
+      GMainLoop* loop;
+      int response;
+
+   static void dialog_callback(GObject* source_object, GAsyncResult* res, gpointer data)
+   {
+      GtkAlertDialog* dialog = GTK_ALERT_DIALOG(source_object);
+      DialogSyncRunner* runner = static_cast<DialogSyncRunner*>(data);
+
+      GError* error = nullptr;
+      runner->response = gtk_alert_dialog_choose_finish(dialog, res, &error);
+      if (error != nullptr) {
+         g_warning("Dialog error: %s", error->message);
+         g_clear_error(&error);
+         runner->response = GTK_RESPONSE_NONE;
+      }
+
+      g_main_loop_quit(runner->loop);
+   }
+
+   public:
+      explicit DialogSyncRunner(GtkWindow* parent, GtkAlertDialog* dialog) noexcept : parent(parent), dialog(dialog), loop(g_main_loop_new(nullptr, FALSE)), response(GTK_RESPONSE_NONE) {}
+      ~DialogSyncRunner() noexcept {
+         if (dialog) g_object_unref(dialog);
+         if (parent) gtk_window_destroy(parent);
+         if (loop) g_main_loop_unref(loop);
+      }
+
+      int present() noexcept {
+         if (dialog && loop) {
+            gtk_alert_dialog_choose(dialog,
+                                    parent,
+                                    nullptr,
+                                    dialog_callback,
+                                    this);
+            g_main_loop_run(loop); // blocking
+         }
+         return response;
+      }
+
+      DialogSyncRunner(const DialogSyncRunner&) = delete;
+      DialogSyncRunner& operator=(const DialogSyncRunner&) = delete;
+   };
+
+   if (!gtk_init_check()) {
+      return Selection::Error;
+   }
+
+   // Create a parent window to stop gtk_dialog_run from complaining
+   GtkWindow* parent = GTK_WINDOW(gtk_window_new());
+
+   GtkAlertDialog* dialog = gtk_alert_dialog_new("%s", title);
+   gtk_alert_dialog_set_message(dialog, message);
+   setButtons(dialog, buttons);
+
+   DialogSyncRunner syncRunner(parent, dialog);
+   Selection selection = getSelection(syncRunner.present(), buttons);
+
+   return selection;
+ #elif defined(GTK4_DEPRECATED)
+   class DialogSyncRunner {
       GtkWidget* parent;
       GtkWidget* dialog;
       GMainLoop* loop;
@@ -266,7 +412,7 @@ BOXERAPI Selection show(const char* message, const char* title, Style style, But
    if (!gtk_init_check()) {
       return Selection::Error;
    }
-   
+
    // Create a parent window to stop gtk_dialog_run from complaining
    GtkWidget* parent = gtk_window_new();
 

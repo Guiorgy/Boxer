@@ -22,12 +22,15 @@ Linux:
 
 On Linux, Boxer requires either the gtk+-3.0 (`apt install libgtk-3-dev` and `pkg-config --cflags --libs gtk+-3.0`) or gtk4 (`apt isntall libgtk-4-dev` and `pkg-config --cflags --libs gtk4`) package.
 
-By default, Boxer uses GTK3. `GTK4` needs to be defined when compiling Boxer to enable GTK4:
+By default, Boxer uses GTK3. `GTK4` or `GTK4_DEPRECATED` needs to be defined when compiling Boxer to enable GTK4:
 
 ```c++
 #define GTK4
+// or #define GTK4_DEPRECATED
 #include "boxer.hpp"
 ```
+
+`GTK4_DEPRECATED` uses the same `GtkMessageDialog` API as GTK3, however, it was deprecated in `4.10` and gives a compile-time warning. `GTK4` instead uses `GtkAlertDialog`, which was added in `4.10`.
 
 ## Including Boxer
 
