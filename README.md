@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Boxer is a simple library that allows for easy cross-platform creation of message boxes / alerts / what have you.
+Boxer is a simple C++ library that allows for easy cross-platform (Windows & Linux) creation of message boxes / alerts / what have you.
 
 ## Example
 
@@ -18,44 +18,23 @@ Linux:
 
 ![Linux](https://user-images.githubusercontent.com/1409522/213894798-1bb1c279-5190-4108-b49c-08a28c7dfc29.png)
 
-## Language
+## Dependencies
 
-Boxer is written in C++, though it has a C branch available as well.
+On Linux, Boxer requires either the gtk+-3.0 (`apt install libgtk-3-dev` and `pkg-config --cflags --libs gtk+-3.0`) or gtk4 (`apt isntall libgtk-4-dev` and `pkg-config --cflags --libs gtk4`) package.
 
-## Compiling Boxer
+By default, Boxer uses GTK3. `GTK4` needs to be defined when compiling Boxer to enable GTK4:
 
-Boxer is set up to be built with CMake.
-
-To generate a static library, execute CMake with the root of the repo as the source directory. Additionally, the example program can be built by enabling the BOXER_BUILD_EXAMPLES option.
-
-On Linux, Boxer requires the gtk+-3.0 package.
+```c++
+#define GTK4
+#include "boxer.hpp"
+```
 
 ## Including Boxer
 
 Wherever you want to use Boxer, just include the header:
 
 ```c++
-#include <boxer/boxer.h>
-```
-
-## Linking Against Boxer
-
-### Static
-
-If Boxer was built statically, just link against the generated static library.
-
-### CMake
-
-To compile Boxer along with another application using CMake, first add the Boxer subdirectory:
-
-```cmake
-add_subdirectory("path/to/Boxer")
-```
-
-Then link against the Boxer library:
-
-```cmake
-target_link_libraries(<target> <INTERFACE|PUBLIC|PRIVATE> Boxer)
+#include "boxer.hpp"
 ```
 
 ## Using Boxer
@@ -84,8 +63,8 @@ boxer::show(u8"Boxer accepts UTF-8 strings. 💯", u8"Unicode 👍");
 
 On Windows, `UNICODE` needs to be defined when compiling Boxer to enable UTF-8 support:
 
-```cmake
-if (WIN32)
-   target_compile_definitions(Boxer PRIVATE UNICODE)
-endif (WIN32)
+```c++
+#define UNICODE
+#define WIN32_LEAN_AND_MEAN
+#include "boxer.hpp"
 ```
